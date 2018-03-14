@@ -1,7 +1,6 @@
 # Mi'sweep
 
 [![StandardJS Compliance](https://img.shields.io/badge/StandardJS-0_Issues-brightgreen.svg?style=flat)](https://standardjs.com/)
-[![StandardJS Compliance](https://img.shields.io/badge/StandardJS-0_Issues-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 ### Browser Compatibility
 |       | IE | Edge | Safari | Chrome | Opera | Firefox |
