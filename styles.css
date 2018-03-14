@@ -149,17 +149,25 @@ thead tr {
    border-width: 2px;
    background-color: #BBBBBB;
 }
-.cell[data-mine].shown {
-   background-image: url("images/bomb.svg");
+.cell.shown svg {
+   position: relative;
+   top: 2px;
+
+   box-sizing: border-box;
+   width: calc(100% - 8px);
+   height: calc(100% - 8px);
+   padding: 0px;
+
+   text-align: center;
 }
-.cell[data-mine="flagged"].shown {
-   background-image: url("images/bomb-green.svg");
+#mainBoard .cell.shown:first-child {
+   border-left-width: 4px;
 }
-.cell[data-mine="detonated"].shown {
-   background-image: url("images/bomb-red.svg");
+#mainBoard .cell.shown:last-child {
+   border-right-width: 4px;
 }
-.cell[data-mine="guessed"].shown {
-   background-image: url("images/bomb-blue.svg");
+#mainBoard tr:last-child .cell.shown {
+   border-bottom-width: 4px;
 }
 .cell[data-flagged="1"] {
    background-image: url("images/flag.svg");
@@ -211,10 +219,17 @@ thead tr {
 [data-toggle="false"] {
    display: none;
 }
-.icons-demo td img {
+#icons-demo td img {
    width: 38px;
 }
-.near-demo [data-near] {
+#icons-demo .bomb-svg {
+   text-align: center;
+}
+#icons-demo .bomb-svg svg {
+   width: 38px;
+   height: 38px;
+}
+#near-demo [data-near] {
    font-size: 1.1em;
    font-weight: bold;
 

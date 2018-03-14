@@ -43,38 +43,38 @@
       </table>
 
       <div id="mainSettings" data-toggle="false">
-         <fieldset class="diff-demo">
+         <fieldset id="diff-demo">
             <legend>Difficulty</legend>
             <input type="button" value="Beginner" onclick="difficulty.beginner()">
             <input type="button" value="Intermediate" onclick="difficulty.intermediate()">
             <input type="button" value="Expert" onclick="difficulty.expert()">
          </fieldset>
 
-         <fieldset class="icons-demo">
+         <fieldset id="icons-demo">
             <legend>Icons</legend>
             <table>
                <tr>
-                  <td><img class="bomb-ex" src="images/bomb-red.svg" alt="Bomb"></td>
+                  <td class="bomb-svg" data-palette="bombDetonated"></td>
                   <td>Detonated Bomb</td>
-                  <td><img class="bomb-ex" src="images/bomb.svg" alt="Bomb"></td>
+                  <td class="bomb-svg" data-palette="bombRegular"></td>
                   <td>Unmarked Bomb</td>
                </tr>
                <tr>
-                  <td><img class="bomb-ex" src="images/bomb-green.svg" alt="Bomb"></td>
+                  <td class="bomb-svg" data-palette="bombFlagged"></td>
                   <td>Marked Bomb</td>
                   <td><img class="bomb-ex" src="images/flag.svg" alt="Flag"></td>
                   <td>Bomb Marker</td>
                </tr>
                <tr>
-                  <td><img class="bomb-ex" src="images/bomb-blue.svg" alt="Bomb"></td>
-                  <td>Questioned Bomb</td>
+                  <td class="bomb-svg" data-palette="bombGuessed"></td>
+                  <td>Guessed Bomb</td>
                   <td><img class="bomb-ex" src="images/que.svg" alt="Flag"></td>
-                  <td>Bomb Question</td>
+                  <td>Bomb Guess</td>
                </tr>
             </table>
          </fieldset>
 
-         <!-- <fieldset class="near-demo">
+         <!-- <fieldset id="near-demo">
             <legend>Nearby</legend>
             <table>
                <tr>

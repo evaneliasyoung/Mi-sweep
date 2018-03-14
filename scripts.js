@@ -56,7 +56,8 @@ function genBoard (px = -1, py = -1) {
 function prepBoard () {
   $('#mainBoard thead tr td').attr('colspan', storage.width)
   $('#reset').attr('src', 'images/face-happy.svg')
-  $('#flags').get(0).innerHTML = `<img src="images/menu.svg" alt="Hamburger" onclick="toggleOverlay()">${storage.mines}`
+  $('#flags').get(0).innerHTML = `<img src="images/menu.svg" alt="Hamburger">${storage.mines}`
+  $('#flags').click(() => { toggleOverlay() })
   $('#timer').text('00:00:00')
 
   $('#mainBoard tbody').html('')
@@ -141,6 +142,7 @@ function revealCell (e) {
 
   $(e).addClass('shown')
   if (e.dataset.mine) {
+    svgAdd(e)
     if (!window.ending) {
       e.dataset.mine = 'detonated'
       loseGame()
@@ -150,7 +152,7 @@ function revealCell (e) {
       } else if (e.dataset.flagged === '2') {
         e.dataset.mine = 'guessed'
       } else if (e.dataset.mine !== 'detonated') {
-        e.dataset.mine = 'missed'
+        e.dataset.mine = 'regular'
       }
     }
   } else {
@@ -166,6 +168,7 @@ function revealCell (e) {
     }
   }
   flagCell(e, 0)
+  svgBombColor()
 }
 function flagCell (e, setFlag = undefined) {
   let cur = parseInt(e.dataset.flagged) || 0
@@ -173,8 +176,35 @@ function flagCell (e, setFlag = undefined) {
   if ((e.classList.contains('shown') && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
 
   e.dataset.flagged = nxt
-  window.left = storage.mines - $('[data-flagged="1"]').length
-  $('#flags').get(0).innerHTML = `<img src="images/menu.svg" alt="Hamburger" onclick="toggleOverlay()">${window.left}`
+  if (!window.ending) { window.left = storage.mines - $('[data-flagged="1"]').length }
+  $('#flags').get(0).innerHTML = `<img src="images/menu.svg" alt="Hamburger">${window.left}`
+}
+// </region>
+
+// <region> SVG Injection
+async function svgAdd (e) {
+  let svgBomb = '<path d="M11.25,6A3.25,3.25 0 0,1 14.5,2.75A3.25,3.25 0 0,1 17.75,6C17.75,6.42 18.08,6.75 18.5,6.75C18.92,6.75 19.25,6.42 19.25,6V5.25H20.75V6A2.25,2.25 0 0,1 18.5,8.25A2.25,2.25 0 0,1 16.25,6A1.75,1.75 0 0,0 14.5,4.25A1.75,1.75 0 0,0 12.75,6H14V7.29C16.89,8.15 19,10.83 19,14A7,7 0 0,1 12,21A7,7 0 0,1 5,14C5,10.83 7.11,8.15 10,7.29V6H11.25M22,6H24V7H22V6M19,4V2H20V4H19M20.91,4.38L22.33,2.96L23.04,3.67L21.62,5.09L20.91,4.38Z" />'
+  e.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24">${svgBomb}</svg>`
+  if (e.className === 'cell shown') {
+    $(e).css('padding', '0px')
+  }
+}
+function svgAddAll () {
+  $('.bomb-svg').each((i, e) => {
+    svgAdd(e)
+  })
+}
+async function svgBombColor () {
+  $('.bomb-svg').each((i, e) => {
+    if (e.dataset.palette) {
+      $(e).find('svg path').attr('fill', storage[e.dataset.palette])
+    }
+  })
+  $('[data-mine]').each((i, e) => {
+    if (e.dataset.mine) {
+      $(e).find('svg path').attr('fill', storage[`bomb${e.dataset.mine[0].toUpperCase()}${e.dataset.mine.substr(1)}`])
+    }
+  })
 }
 // </region>
 
@@ -183,6 +213,10 @@ function defaultSettings () {
   if (!parseInt(storage.mines)) {
     difficulty.intermediate()
   }
+  storage.bombRegular = storage.bombRegular || '#000000'
+  storage.bombDetonated = storage.bombDetonated || '#FF1300'
+  storage.bombFlagged = storage.bombFlagged || '#008100'
+  storage.bombGuessed = storage.bombGuessed || '#000083'
 }
 
 function toggleOverlay () {
@@ -202,6 +236,8 @@ function load () {
   defaultSettings()
   prepBoard()
   sizeSettings()
+  svgAddAll()
+  svgBombColor()
 
   setInterval(() => {
     if (window.start && !window.ending) {
