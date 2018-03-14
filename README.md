@@ -1,2 +1,2 @@
-# Mi-sweep
+# Mi'sweep
 Budget Minesweeper

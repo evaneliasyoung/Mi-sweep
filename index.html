@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <!--
+         Author      : Evan Young
+         Date        : 03/03/2018
+         Revision    : 03/13/2018
+         Description : Budget Minesweeper
+      -->
+
+      <title>Mi'sweep</title>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+      <link rel="stylesheet" href="styles.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+      <script defer src="scripts.js" charset="utf-8"></script>
+
+      <meta charset="utf-8">
+      <meta name="author" content="Evan Young">
+      <meta name="copyright" content="&copy; 2018 Evan Young">
+      <meta name="date" content="03/03/2018">
+      <meta name="description" content="Budget Minesweeper">
+      <meta name="keywords" content="minesweep,classic">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="robots" content="index, nofollow">
+      <meta name="html-valid" content="HTML5, ARIA, SVG1.1, MathML 2.0">
+      <meta name="css-valid" content="CSSL 3">
+   </head>
+
+   <body>
+      <table id="mainBoard">
+         <thead>
+            <tr>
+               <td>
+                  <div id="flexer">
+                     <div id="flags"><img src="images/menu.svg" alt="Hamburger">00</div>
+                     <div id="reset"><img src="images/face-happy.svg" alt="Reset Button"></div>
+                     <div id="timer"></div>
+                  </div>
+               </td>
+            </tr>
+         </thead>
+         <tbody></tbody>
+      </table>
+
+      <div id="mainSettings" data-toggle="false">
+         <fieldset class="diff-demo">
+            <legend>Difficulty</legend>
+            <input type="button" value="Beginner" onclick="difficulty.beginner()">
+            <input type="button" value="Intermediate" onclick="difficulty.intermediate()">
+            <input type="button" value="Expert" onclick="difficulty.expert()">
+         </fieldset>
+
+         <fieldset class="icons-demo">
+            <legend>Icons</legend>
+            <table>
+               <tr>
+                  <td><img class="bomb-ex" src="images/bomb-red.svg" alt="Bomb"></td>
+                  <td>Detonated Bomb</td>
+                  <td><img class="bomb-ex" src="images/bomb.svg" alt="Bomb"></td>
+                  <td>Unmarked Bomb</td>
+               </tr>
+               <tr>
+                  <td><img class="bomb-ex" src="images/bomb-green.svg" alt="Bomb"></td>
+                  <td>Marked Bomb</td>
+                  <td><img class="bomb-ex" src="images/flag.svg" alt="Flag"></td>
+                  <td>Bomb Marker</td>
+               </tr>
+               <tr>
+                  <td><img class="bomb-ex" src="images/bomb-blue.svg" alt="Bomb"></td>
+                  <td>Questioned Bomb</td>
+                  <td><img class="bomb-ex" src="images/que.svg" alt="Flag"></td>
+                  <td>Bomb Question</td>
+               </tr>
+            </table>
+         </fieldset>
+
+         <!-- <fieldset class="near-demo">
+            <legend>Nearby</legend>
+            <table>
+               <tr>
+                  <td data-near="1">1 Mine</td>
+                  <td data-near="2">2 Mines</td>
+                  <td data-near="3">3 Mines</td>
+                  <td data-near="4">4 Mines</td>
+               </tr>
+               <tr>
+                  <td data-near="5">5 Mines</td>
+                  <td data-near="6">6 Mines</td>
+                  <td data-near="7">7 Mines</td>
+                  <td data-near="8">8 Mines</td>
+               </tr>
+            </table>
+         </fieldset> -->
+      </div>
+   </body>
+</html>
