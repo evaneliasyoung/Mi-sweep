@@ -70,8 +70,8 @@ function genBoard (px = -1, py = -1) {
  */
 function prepBoard () {
   $('#mainBoard thead tr td').attr('colspan', storage.width)
-  $('#flags').get(0).innerHTML = `<img src="images/menu.svg" alt="Hamburger">${storage.mines}`
-  $('#flags').click(() => { toggleOverlay() })
+  $('#flags span').text(storage.mines)
+  $('#flags img').click(() => { toggleOverlay() })
 
   $('#mainBoard tbody').html('')
   for (let i = 0; i < storage.height; i++) {
@@ -229,7 +229,8 @@ function flagCell (e, setFlag = undefined) {
 
   e.dataset.flagged = nxt
   if (!window.ending) { window.left = storage.mines - $('[data-flagged="1"]').length }
-  $('#flags').get(0).innerHTML = `<img src="images/menu.svg" alt="Hamburger">${window.left}`
+  $('#flags span').text(window.left)
+  $('#flags span').get(0).title = `${$('[data-flagged="1"]').length} Marked\n${$('[data-flagged="2"]').length} Guess(es)`
 }
 // </region>
 
@@ -303,6 +304,11 @@ async function prepSettings () {
     svgAdd(e)
   })
   $('#col-demo [value="Reset"]').click(resetColors)
+  $('[name="inp-mines"]').get(0).value = storage.mines
+  $('[name="inp-mines"]').change((e) => {
+    e.target.value = clamp(e.target.value, 1, (storage.width * storage.height) - 1)
+    storage.mines = e.target.value
+  })
 
   $('[data-storage-value]').each((i, e) => {
     e.value = storage[e.dataset.storageValue]

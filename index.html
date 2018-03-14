@@ -32,7 +32,7 @@
             <tr>
                <td>
                   <div id="flexer">
-                     <div id="flags"><img src="images/menu.svg" alt="Hamburger">00</div>
+                     <div id="flags"><img src="images/menu.svg" alt="Hamburger"><span>00</span></div>
                      <div id="reset"><img src="images/face-happy.svg" alt="Reset Button"></div>
                      <div id="timer">00:00:00</div>
                   </div>
@@ -48,6 +48,9 @@
             <input type="button" value="Beginner" onclick="difficulty.beginner()">
             <input type="button" value="Intermediate" onclick="difficulty.intermediate()">
             <input type="button" value="Expert" onclick="difficulty.expert()">
+            <input type="number" data-storage-value="width">
+            <input type="number" data-storage-value="height">
+            <input type="number" name="inp-mines">
          </fieldset>
 
          <fieldset id="col-demo">
