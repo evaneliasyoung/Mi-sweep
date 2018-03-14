@@ -4,7 +4,7 @@
       <!--
          Author      : Evan Young
          Date        : 03/03/2018
-         Revision    : 03/13/2018
+         Revision    : 03/14/2018
          Description : Budget Minesweeper
       -->
 
@@ -34,7 +34,7 @@
                   <div id="flexer">
                      <div id="flags"><img src="images/menu.svg" alt="Hamburger">00</div>
                      <div id="reset"><img src="images/face-happy.svg" alt="Reset Button"></div>
-                     <div id="timer"></div>
+                     <div id="timer">00:00:00</div>
                   </div>
                </td>
             </tr>
@@ -48,6 +48,15 @@
             <input type="button" value="Beginner" onclick="difficulty.beginner()">
             <input type="button" value="Intermediate" onclick="difficulty.intermediate()">
             <input type="button" value="Expert" onclick="difficulty.expert()">
+         </fieldset>
+
+         <fieldset id="col-demo">
+            <legend>Colors</legend>
+            <input type="color" data-storage-value="bombDetonated">
+            <input type="color" data-storage-value="bombRegular">
+            <input type="color" data-storage-value="bombFlagged">
+            <input type="color" data-storage-value="bombGuessed">
+            <input type="button" value="Reset">
          </fieldset>
 
          <fieldset id="icons-demo">
