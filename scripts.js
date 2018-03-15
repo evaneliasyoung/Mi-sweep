@@ -25,9 +25,6 @@ const difficulty = {
     storage.width = 30
     storage.height = 16
     window.location.reload()
-  },
-  custom: () => {
-    window.location.reload()
   }
 }
 window.left = storage.mines
@@ -78,7 +75,8 @@ function prepBoard () {
     $('#mainBoard tbody').append(`<tr>${'<td class="cell"></td>'.repeat(storage.width)}</tr>`)
   }
 
-  $('.cell').mousedown((e) => {
+  $('.cell')
+  .mousedown((e) => {
     if (!window.start) { window.start = new Date() }
     if (e.which === 1) {
       if (window.firstMove) {
@@ -91,8 +89,7 @@ function prepBoard () {
     }
     if ($('[data-flagged="1"][data-mine]').length === parseInt(storage.mines)) { winGame() }
   })
-
-  $('.cell').contextmenu(() => {
+  .contextmenu(() => {
     return false
   })
 
@@ -103,7 +100,7 @@ function prepBoard () {
  */
 function endGame () {
   window.ending = true
-  $('.cell').each((i, e) => {
+  $('.cell:not(.shown)').each((i, e) => {
     revealCell(e)
   })
 }
@@ -229,8 +226,9 @@ function flagCell (e, setFlag = undefined) {
 
   e.dataset.flagged = nxt
   if (!window.ending) { window.left = storage.mines - $('[data-flagged="1"]').length }
-  $('#flags span').text(window.left)
-  $('#flags span').get(0).title = `${$('[data-flagged="1"]').length} Marked\n${$('[data-flagged="2"]').length} Guess(es)`
+  $('#flags span')
+  .text(window.left)
+  .get(0).title = `${$('[data-flagged="1"]').length} Marked\n${$('[data-flagged="2"]').length} Guess(es)`
 }
 // </region>
 
@@ -265,55 +263,59 @@ async function svgBombColor () {
 
 // <region> Settings
 /**
- * Resets the bomb colors
- */
-async function resetColors () {
-  storage.bombRegular = '#000000'
-  storage.bombDetonated = '#FF1300'
-  storage.bombFlagged = '#008100'
-  storage.bombGuessed = '#000083'
-  $('#col-demo [data-storage-value]').each((i, e) => {
-    e.value = storage[e.dataset.storageValue]
-  })
-  svgBombColor()
-}
-/**
  * Sets the default settings incase they're undefined
  */
 function defaultSettings () {
   if (!parseInt(storage.mines)) {
     difficulty.intermediate()
   }
-  storage.bombRegular = storage.bombRegular || '#000000'
-  storage.bombDetonated = storage.bombDetonated || '#FF1300'
-  storage.bombFlagged = storage.bombFlagged || '#008100'
-  storage.bombGuessed = storage.bombGuessed || '#000083'
+  storage.bombRegularDefault = '#000000'
+  storage.bombDetonatedDefault = '#FF1300'
+  storage.bombFlaggedDefault = '#008100'
+  storage.bombGuessedDefault = '#000083'
+
+  storage.bombRegular = storage.bombRegular || storage.bombRegularDefault
+  storage.bombDetonated = storage.bombDetonated || storage.bombDetonatedDefault
+  storage.bombFlagged = storage.bombFlagged || storage.bombFlaggedDefault
+  storage.bombGuessed = storage.bombGuessed || storage.bombGuessedDefault
 }
 /**
  * Prepares the settings overlay
  */
 async function prepSettings () {
-  let e = $('#mainSettings').get(0)
-  $(e).css({
+  $('#mainSettings')
+  .css({
     width: $('#mainBoard tbody').width() - 2,
     height: $('#mainBoard tbody').height() - 2,
     top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
   })
 
-  $('.bomb-svg').each((i, e) => {
+  $('.bomb-svg')
+  .each((i, e) => {
     svgAdd(e)
   })
-  $('#col-demo [value="Reset"]').click(resetColors)
+  .mousedown(function (e) {
+    if (e.which === 1) {
+      $(`[data-storage-value="${this.dataset.palette}"]`).get(0).click()
+    } else if (e.which === 3) {
+      storage[this.dataset.palette] = storage[`${this.dataset.palette}Default`]
+      this.value = storage[this.dataset.palette]
+      svgBombColor()
+    }
+  })
+  .contextmenu(() => { return false })
+
   $('[name="inp-mines"]').get(0).value = storage.mines
   $('[name="inp-mines"]').change((e) => {
     e.target.value = clamp(e.target.value, 1, (storage.width * storage.height) - 1)
     storage.mines = e.target.value
   })
 
-  $('[data-storage-value]').each((i, e) => {
+  $('[data-storage-value]')
+  .each((i, e) => {
     e.value = storage[e.dataset.storageValue]
   })
-  $('[data-storage-value]').change((e) => {
+  .change((e) => {
     storage[e.target.dataset.storageValue] = e.target.value
     svgBombColor()
   })

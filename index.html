@@ -48,18 +48,10 @@
             <input type="button" value="Beginner" onclick="difficulty.beginner()">
             <input type="button" value="Intermediate" onclick="difficulty.intermediate()">
             <input type="button" value="Expert" onclick="difficulty.expert()">
+            <input type="button" value="Custom" onclick="document.location.reload()">
             <input type="number" data-storage-value="width">
             <input type="number" data-storage-value="height">
             <input type="number" name="inp-mines">
-         </fieldset>
-
-         <fieldset id="col-demo">
-            <legend>Colors</legend>
-            <input type="color" data-storage-value="bombDetonated">
-            <input type="color" data-storage-value="bombRegular">
-            <input type="color" data-storage-value="bombFlagged">
-            <input type="color" data-storage-value="bombGuessed">
-            <input type="button" value="Reset">
          </fieldset>
 
          <fieldset id="icons-demo">
@@ -103,6 +95,13 @@
                </tr>
             </table>
          </fieldset> -->
+      </div>
+
+      <div id="allHidden">
+         <input type="color" data-storage-value="bombDetonated" class="inp-col">
+         <input type="color" data-storage-value="bombRegular" class="inp-col">
+         <input type="color" data-storage-value="bombFlagged" class="inp-col">
+         <input type="color" data-storage-value="bombGuessed" class="inp-col">
       </div>
    </body>
 </html>

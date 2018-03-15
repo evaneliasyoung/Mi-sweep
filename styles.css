@@ -32,6 +32,9 @@ body {
    color: #000000;
    background-color: #999999;
 }
+#allHidden, #allHidden * {
+   display: none;
+}
 /* </region> */
 
 /* <region> Header */
@@ -224,6 +227,7 @@ thead tr {
 }
 #icons-demo .bomb-svg {
    text-align: center;
+   cursor: pointer;
 }
 #icons-demo .bomb-svg svg {
    width: 38px;
