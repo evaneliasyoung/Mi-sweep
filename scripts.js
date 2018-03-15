@@ -43,6 +43,16 @@ window.firstMove = true
 function clamp (i, mn = 0, mx = 1) {
   return Math.min(mx, Math.max(i, mn))
 }
+/**
+ * Converts a string to title casing
+ * @param  {String} s The string to title
+ * @return {String}   The titled string
+ */
+function titleCase (s) {
+  return s.toLowerCase().split(' ').map((e, i) => {
+    return e[0].toUpperCase() + e.substr(1)
+  }).join(' ')
+}
 // </region>
 
 // <region> Board
@@ -72,22 +82,22 @@ function prepBoard () {
 
   $('#mainBoard tbody').html('')
   for (let i = 0; i < storage.height; i++) {
-    $('#mainBoard tbody').append(`<tr>${'<td class="cell"></td>'.repeat(storage.width)}</tr>`)
+    $('#mainBoard tbody').append(`<tr>${'<td class="cell" data-flagged="default"></td>'.repeat(storage.width)}</tr>`)
   }
 
   $('.cell')
-  .mousedown((e) => {
+  .mousedown((ev) => {
     if (!window.start) { window.start = new Date() }
-    if (e.which === 1) {
+    if (ev.which === 1) {
       if (window.firstMove) {
-        genBoard(cellToCoords(e.target)[0], cellToCoords(e.target)[1])
+        genBoard(cellToCoords(ev.target)[0], cellToCoords(ev.target)[1])
         window.firstMove = false
       }
-      revealCell(e.target)
-    } else if (e.which === 3) {
-      flagCell(e.target)
+      revealCell(ev.target)
+    } else if (ev.which === 3) {
+      flagCell(ev.target)
     }
-    if ($('[data-flagged="1"][data-mine]').length === parseInt(storage.mines)) { winGame() }
+    if ($('[data-flagged="flagged"][data-mine]').length === parseInt(storage.mines)) { winGame() }
   })
   .contextmenu(() => {
     return false
@@ -182,7 +192,7 @@ function calcNear (e) {
  * @param  {Element} e The cell to reveal
  */
 function revealCell (e) {
-  if (e.dataset.flagged === '1' && !window.ending) { return false }
+  if (e.dataset.flagged === 'flagged' && !window.ending) { return false }
 
   $(e).addClass('shown')
   if (e.dataset.mine) {
@@ -191,13 +201,7 @@ function revealCell (e) {
       e.dataset.mine = 'detonated'
       loseGame()
     } else if (e.dataset.mine !== 'detonated') {
-      if (e.dataset.flagged === '1') {
-        e.dataset.mine = 'flagged'
-      } else if (e.dataset.flagged === '2') {
-        e.dataset.mine = 'guessed'
-      } else if (e.dataset.mine !== 'detonated') {
-        e.dataset.mine = 'regular'
-      }
+      e.dataset.mine = e.dataset.flagged
     }
   } else {
     let near = calcNear(e)
@@ -207,11 +211,12 @@ function revealCell (e) {
       for (let a of getAdjacent(e)) {
         if (!a.classList.contains('shown')) { revealCell(a) }
       }
-    } else {
-      if (e.dataset.flagged !== '1') { e.innerText = near }
+    } else if (e.dataset.flagged !== 'flagged') {
+      e.innerText = near
     }
   }
-  flagCell(e, 0)
+  // Game ending AND Cell has a mine OR Game not ending OR Guessed cell
+  if ((window.ending && e.dataset.mine) || !window.ending || e.dataset.flagged === 'guessed') { flagCell(e, 0) }
   svgBombColor()
 }
 /**
@@ -220,15 +225,17 @@ function revealCell (e) {
  * @param  {Number} [setFlag=undefined] The forced state
  */
 function flagCell (e, setFlag = undefined) {
-  let cur = parseInt(e.dataset.flagged) || 0
+  let sts = ['default', 'flagged', 'guessed']
+  let cur = sts.indexOf(e.dataset.flagged)
   let nxt = setFlag === undefined ? (cur + 1) % 3 : setFlag
+  // Already shown AND no flag OR No flag AND no flags left
   if ((e.classList.contains('shown') && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
 
-  e.dataset.flagged = nxt
-  if (!window.ending) { window.left = storage.mines - $('[data-flagged="1"]').length }
+  e.dataset.flagged = sts[nxt]
+  if (!window.ending) { window.left = storage.mines - $('[data-flagged="flagged"]').length }
   $('#flags span')
   .text(window.left)
-  .get(0).title = `${$('[data-flagged="1"]').length} Marked\n${$('[data-flagged="2"]').length} Guess(es)`
+  .get(0).title = `${$('[data-flagged="flagged"]').length} Marked\n${$('[data-flagged="guessed"]').length} Guess(es)`
 }
 // </region>
 
@@ -248,22 +255,15 @@ async function svgAdd (e) {
  * Recolors the bomb svgs according to the settings
  */
 async function svgBombColor () {
-  $('.bomb-svg').each((i, e) => {
-    if (e.dataset.palette) {
-      $(e).find('svg path').attr('fill', storage[e.dataset.palette])
-    }
-  })
   $('[data-mine]').each((i, e) => {
-    if (e.dataset.mine) {
-      $(e).find('svg path').attr('fill', storage[`bomb${e.dataset.mine[0].toUpperCase()}${e.dataset.mine.substr(1)}`])
-    }
+    $(e).find('svg path').attr('fill', storage[`bomb${titleCase(e.dataset.mine)}`])
   })
 }
 // </region>
 
 // <region> Settings
 /**
- * Sets the default settings incase they're undefined
+ * Sets the default settings in case they're undefined
  */
 function defaultSettings () {
   if (!parseInt(storage.mines)) {
@@ -290,16 +290,17 @@ async function prepSettings () {
     top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
   })
 
-  $('.bomb-svg')
+  $('#icons-demo [data-mine]')
   .each((i, e) => {
     svgAdd(e)
   })
-  .mousedown(function (e) {
-    if (e.which === 1) {
-      $(`[data-storage-value="${this.dataset.palette}"]`).get(0).click()
-    } else if (e.which === 3) {
-      storage[this.dataset.palette] = storage[`${this.dataset.palette}Default`]
-      this.value = storage[this.dataset.palette]
+  .mousedown(function (ev) {
+    let stName = `bomb${titleCase(this.dataset.mine)}`
+    if (ev.which === 1) {
+      $(`[data-storage-value="${stName}"]`).get(0).click()
+    } else if (ev.which === 3) {
+      storage[stName] = storage[`${stName}Default`]
+      this.value = storage[stName]
       svgBombColor()
     }
   })
@@ -307,16 +308,16 @@ async function prepSettings () {
 
   $('[name="inp-mines"]').get(0).value = storage.mines
   $('[name="inp-mines"]').change((e) => {
-    e.target.value = clamp(e.target.value, 1, (storage.width * storage.height) - 1)
-    storage.mines = e.target.value
+    ev.target.value = clamp(ev.target.value, 1, (storage.width * storage.height) - 1)
+    storage.mines = ev.target.value
   })
 
   $('[data-storage-value]')
   .each((i, e) => {
     e.value = storage[e.dataset.storageValue]
   })
-  .change((e) => {
-    storage[e.target.dataset.storageValue] = e.target.value
+  .change((ev) => {
+    storage[ev.target.dataset.storageValue] = ev.target.value
     svgBombColor()
   })
 }
