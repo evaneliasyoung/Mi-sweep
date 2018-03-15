@@ -172,10 +172,10 @@ thead tr {
 #mainBoard tr:last-child .cell.shown {
    border-bottom-width: 4px;
 }
-.cell[data-flagged="1"] {
+.cell[data-flagged="flagged"] {
    background-image: url("images/flag.svg");
 }
-.cell[data-flagged="2"] {
+.cell[data-flagged="guessed"] {
    background-image: url("images/que.svg");
 }
 /* </region> */
@@ -225,11 +225,11 @@ thead tr {
 #icons-demo td img {
    width: 38px;
 }
-#icons-demo .bomb-svg {
+#icons-demo [data-mine] {
    text-align: center;
    cursor: pointer;
 }
-#icons-demo .bomb-svg svg {
+#icons-demo [data-mine] svg {
    width: 38px;
    height: 38px;
 }
