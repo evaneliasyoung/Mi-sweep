@@ -27,6 +27,7 @@ const difficulty = {
     window.location.reload()
   }
 }
+window.compats = []
 window.left = storage.mines
 window.ending = false
 window.firstMove = true
@@ -82,7 +83,7 @@ function prepBoard () {
 
   $('#mainBoard tbody').html('')
   for (let i = 0; i < storage.height; i++) {
-    $('#mainBoard tbody').append(`<tr>${'<td class="cell" data-flagged="default"></td>'.repeat(storage.width)}</tr>`)
+    $('#mainBoard tbody').append(`<tr>${'<td class="cell" data-shown="false" data-flagged="default"></td>'.repeat(storage.width)}</tr>`)
   }
 
   $('.cell')
@@ -110,7 +111,7 @@ function prepBoard () {
  */
 function endGame () {
   window.ending = true
-  $('.cell:not(.shown)').each((i, e) => {
+  $('.cell:not([data-shown="true"])').each((i, e) => {
     revealCell(e)
   })
 }
@@ -194,7 +195,12 @@ function calcNear (e) {
 function revealCell (e) {
   if (e.dataset.flagged === 'flagged' && !window.ending) { return false }
 
-  $(e).addClass('shown')
+  if (window.ending) {
+    e.dataset.shown = 'post'
+  } else {
+    e.dataset.shown = 'true'
+  }
+
   if (e.dataset.mine) {
     svgAdd(e)
     if (!window.ending) {
@@ -209,7 +215,7 @@ function revealCell (e) {
 
     if (near === 0) {
       for (let a of getAdjacent(e)) {
-        if (!a.classList.contains('shown')) { revealCell(a) }
+        if (a.dataset.shown === 'false') { revealCell(a) }
       }
     } else if (e.dataset.flagged !== 'flagged') {
       e.innerText = near
@@ -229,7 +235,7 @@ function flagCell (e, setFlag = undefined) {
   let cur = sts.indexOf(e.dataset.flagged)
   let nxt = setFlag === undefined ? (cur + 1) % 3 : setFlag
   // Already shown AND no flag OR No flag AND no flags left
-  if ((e.classList.contains('shown') && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
+  if ((e.dataset.shown !== 'false' && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
 
   e.dataset.flagged = sts[nxt]
   if (!window.ending) { window.left = storage.mines - $('[data-flagged="flagged"]').length }
@@ -247,7 +253,7 @@ function flagCell (e, setFlag = undefined) {
 async function svgAdd (e) {
   let svgBomb = '<path d="M11.25,6A3.25,3.25 0 0,1 14.5,2.75A3.25,3.25 0 0,1 17.75,6C17.75,6.42 18.08,6.75 18.5,6.75C18.92,6.75 19.25,6.42 19.25,6V5.25H20.75V6A2.25,2.25 0 0,1 18.5,8.25A2.25,2.25 0 0,1 16.25,6A1.75,1.75 0 0,0 14.5,4.25A1.75,1.75 0 0,0 12.75,6H14V7.29C16.89,8.15 19,10.83 19,14A7,7 0 0,1 12,21A7,7 0 0,1 5,14C5,10.83 7.11,8.15 10,7.29V6H11.25M22,6H24V7H22V6M19,4V2H20V4H19M20.91,4.38L22.33,2.96L23.04,3.67L21.62,5.09L20.91,4.38Z" />'
   e.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24">${svgBomb}</svg>`
-  if (e.className === 'cell shown') {
+  if (e.dataset.shown !== 'false') {
     $(e).css('padding', '0px')
   }
 }
@@ -307,7 +313,7 @@ async function prepSettings () {
   .contextmenu(() => { return false })
 
   $('[name="inp-mines"]').get(0).value = storage.mines
-  $('[name="inp-mines"]').change((e) => {
+  $('[name="inp-mines"]').change((ev) => {
     ev.target.value = clamp(ev.target.value, 1, (storage.width * storage.height) - 1)
     storage.mines = ev.target.value
   })
@@ -331,6 +337,20 @@ function toggleOverlay () {
 
 // <region> Document
 /**
+ * Determines the compatibility of the browser
+ * @return {Dictionary}
+ */
+function checkCompat () {
+  try {
+    let e = document.createElement('input')
+    e.type = 'color'
+  } catch (e) {
+    window.compats.push(false)
+  } finally {
+    window.compats.push(true)
+  }
+}
+/**
  * The main load handler
  */
 function load () {
@@ -338,6 +358,7 @@ function load () {
   prepBoard()
   prepSettings()
   svgBombColor()
+  checkCompat()
 
   setInterval(() => {
     if (window.start && !window.ending) {
