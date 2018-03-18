@@ -1,3 +1,9 @@
+/**
+ * @author    Evan Young
+ * @copyright Evan Young 2018
+ * @file      Budget Minesweeper
+ */
+
 /* <region> Master */
 * {
    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -156,7 +162,8 @@ thead tr {
    position: relative;
    top: 2px;
 
-   box-sizing: border-box;
+   -webkit-box-sizing: border-box;
+           box-sizing: border-box;
    width: calc(100% - 8px);
    height: calc(100% - 8px);
    padding: 0px;
@@ -226,8 +233,8 @@ thead tr {
    width: 38px;
 }
 #icons-demo [data-mine] {
-   text-align: center;
    cursor: pointer;
+   text-align: center;
 }
 #icons-demo [data-mine] svg {
    width: 38px;

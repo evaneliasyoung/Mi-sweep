@@ -6,29 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-const storage = window.localStorage
-const difficulty = {
-  beginner: () => {
-    storage.mines = 10
-    storage.width = 8
-    storage.height = 8
-    window.location.reload()
-  },
-  intermediate: () => {
-    storage.mines = 40
-    storage.width = 16
-    storage.height = 16
-    window.location.reload()
-  },
-  expert: () => {
-    storage.mines = 99
-    storage.width = 30
-    storage.height = 16
-    window.location.reload()
-  }
-}
-window.compats = []
-window.left = storage.mines
+window.compats = {}
 window.ending = false
 window.firstMove = true
 // </region>
@@ -63,11 +41,12 @@ function titleCase (s) {
  * @param  {Number} [py=-1] The protected y location
  */
 function genBoard (px = -1, py = -1) {
-  for (let m = 0; m < storage.mines; m++) {
+  window.left = window.storage.mines
+  for (let m = 0; m < window.storage.mines; m++) {
     let x, y, e
     do {
-      x = Math.floor(Math.random() * storage.width)
-      y = Math.floor(Math.random() * storage.height)
+      x = Math.floor(Math.random() * window.storage.width)
+      y = Math.floor(Math.random() * window.storage.height)
       e = $($('#mainBoard tbody tr').get(y)).find('td').get(x)
     } while (e.dataset.mine || (x === px && y === py))
     e.dataset.mine = 'true'
@@ -77,32 +56,32 @@ function genBoard (px = -1, py = -1) {
  * Inserts the markup and the listeners for the minefield
  */
 function prepBoard () {
-  $('#mainBoard thead tr td').attr('colspan', storage.width)
-  $('#flags span').text(storage.mines)
+  $('#mainBoard thead tr td').attr('colspan', window.storage.width)
+  $('#flags span').text(window.storage.mines)
   $('#flags img').click(() => { toggleOverlay() })
 
   $('#mainBoard tbody').html('')
-  for (let i = 0; i < storage.height; i++) {
-    $('#mainBoard tbody').append(`<tr>${'<td class="cell" data-shown="false" data-flagged="default"></td>'.repeat(storage.width)}</tr>`)
+  for (let i = 0; i < window.storage.height; i++) {
+    $('#mainBoard tbody').append(`<tr>${'<td class="cell" data-shown="false" data-flagged="default"></td>'.repeat(window.storage.width)}</tr>`)
   }
 
   $('.cell')
-  .mousedown((ev) => {
-    if (!window.start) { window.start = new Date() }
-    if (ev.which === 1) {
-      if (window.firstMove) {
-        genBoard(cellToCoords(ev.target)[0], cellToCoords(ev.target)[1])
-        window.firstMove = false
+    .mousedown((ev) => {
+      if (!window.start) { window.start = new Date() }
+      if (ev.which === 1) {
+        if (window.firstMove) {
+          genBoard(cellToCoords(ev.target)[0], cellToCoords(ev.target)[1])
+          window.firstMove = false
+        }
+        revealCell(ev.target)
+      } else if (ev.which === 3) {
+        flagCell(ev.target)
       }
-      revealCell(ev.target)
-    } else if (ev.which === 3) {
-      flagCell(ev.target)
-    }
-    if ($('[data-flagged="flagged"][data-mine]').length === parseInt(storage.mines)) { winGame() }
-  })
-  .contextmenu(() => {
-    return false
-  })
+      if ($('[data-flagged="flagged"][data-mine]').length === parseInt(window.storage.mines)) { winGame() }
+    })
+    .contextmenu(() => {
+      return false
+    })
 
   $('#reset').click(() => { window.location.reload() })
 }
@@ -162,10 +141,10 @@ function getAdjacent (e) {
   let coords = cellToCoords(e)
   let x = coords[0]
   let y = coords[1]
-  let xMin = clamp(x - 1, 0, storage.width - 1)
-  let xMax = clamp(x + 1, 0, storage.width - 1)
-  let yMin = clamp(y - 1, 0, storage.height - 1)
-  let yMax = clamp(y + 1, 0, storage.height - 1)
+  let xMin = clamp(x - 1, 0, window.storage.width - 1)
+  let xMax = clamp(x + 1, 0, window.storage.width - 1)
+  let yMin = clamp(y - 1, 0, window.storage.height - 1)
+  let yMax = clamp(y + 1, 0, window.storage.height - 1)
   let adj = []
 
   for (let yNeighbor = yMin; yNeighbor <= yMax; yNeighbor++) {
@@ -238,10 +217,10 @@ function flagCell (e, setFlag = undefined) {
   if ((e.dataset.shown !== 'false' && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
 
   e.dataset.flagged = sts[nxt]
-  if (!window.ending) { window.left = storage.mines - $('[data-flagged="flagged"]').length }
+  if (!window.ending) { window.left = window.storage.mines - $('[data-flagged="flagged"]').length }
   $('#flags span')
-  .text(window.left)
-  .get(0).title = `${$('[data-flagged="flagged"]').length} Marked\n${$('[data-flagged="guessed"]').length} Guess(es)`
+    .text(window.left)
+    .get(0).title = `${$('[data-flagged="flagged"]').length} Marked\n${$('[data-flagged="guessed"]').length} Guess(es)`
 }
 // </region>
 
@@ -262,7 +241,7 @@ async function svgAdd (e) {
  */
 async function svgBombColor () {
   $('[data-mine]').each((i, e) => {
-    $(e).find('svg path').attr('fill', storage[`bomb${titleCase(e.dataset.mine)}`])
+    $(e).find('svg path').attr('fill', window.storage[`bomb${titleCase(e.dataset.mine)}`])
   })
 }
 // </region>
@@ -272,60 +251,81 @@ async function svgBombColor () {
  * Sets the default settings in case they're undefined
  */
 function defaultSettings () {
-  if (!parseInt(storage.mines)) {
-    difficulty.intermediate()
+  window.difficulty = {
+    beginner: () => {
+      window.storage.mines = 10
+      window.storage.width = 8
+      window.storage.height = 8
+      window.location.reload()
+    },
+    intermediate: () => {
+      window.storage.mines = 40
+      window.storage.width = 16
+      window.storage.height = 16
+      window.location.reload()
+    },
+    expert: () => {
+      window.storage.mines = 99
+      window.storage.width = 30
+      window.storage.height = 16
+      window.location.reload()
+    }
   }
-  storage.bombRegularDefault = '#000000'
-  storage.bombDetonatedDefault = '#FF1300'
-  storage.bombFlaggedDefault = '#008100'
-  storage.bombGuessedDefault = '#000083'
 
-  storage.bombRegular = storage.bombRegular || storage.bombRegularDefault
-  storage.bombDetonated = storage.bombDetonated || storage.bombDetonatedDefault
-  storage.bombFlagged = storage.bombFlagged || storage.bombFlaggedDefault
-  storage.bombGuessed = storage.bombGuessed || storage.bombGuessedDefault
+  if (!parseInt(window.storage.mines)) {
+    window.difficulty.intermediate()
+  }
+  window.storage.bombRegularDefault = '#000000'
+  window.storage.bombDetonatedDefault = '#FF1300'
+  window.storage.bombFlaggedDefault = '#008100'
+  window.storage.bombGuessedDefault = '#000083'
+
+  window.storage.bombRegular = window.storage.bombRegular || window.storage.bombRegularDefault
+  window.storage.bombDetonated = window.storage.bombDetonated || window.storage.bombDetonatedDefault
+  window.storage.bombFlagged = window.storage.bombFlagged || window.storage.bombFlaggedDefault
+  window.storage.bombGuessed = window.storage.bombGuessed || window.storage.bombGuessedDefault
 }
 /**
  * Prepares the settings overlay
  */
 async function prepSettings () {
   $('#mainSettings')
-  .css({
-    width: $('#mainBoard tbody').width() - 2,
-    height: $('#mainBoard tbody').height() - 2,
-    top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
-  })
+    .css({
+      width: $('#mainBoard tbody').width() - 2,
+      height: $('#mainBoard tbody').height() - 2,
+      top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
+    })
 
   $('#icons-demo [data-mine]')
-  .each((i, e) => {
-    svgAdd(e)
-  })
-  .mousedown(function (ev) {
-    let stName = `bomb${titleCase(this.dataset.mine)}`
-    if (ev.which === 1) {
-      $(`[data-storage-value="${stName}"]`).get(0).click()
-    } else if (ev.which === 3) {
-      storage[stName] = storage[`${stName}Default`]
-      this.value = storage[stName]
-      svgBombColor()
-    }
-  })
-  .contextmenu(() => { return false })
+    .each((i, e) => {
+      svgAdd(e)
+    })
+    .mousedown(function (ev) {
+      let stName = `bomb${titleCase(this.dataset.mine)}`
+      if (ev.which === 1) {
+        $(`[data-storage-value="${stName}"]`).get(0).click()
+      } else if (ev.which === 3) {
+        window.storage[stName] = window.storage[`${stName}Default`]
+        this.value = window.storage[stName]
+        svgBombColor()
+      }
+    })
+    .contextmenu(() => { return false })
 
-  $('[name="inp-mines"]').get(0).value = storage.mines
+  $('[name="inp-mines"]').get(0).value = window.storage.mines
   $('[name="inp-mines"]').change((ev) => {
-    ev.target.value = clamp(ev.target.value, 1, (storage.width * storage.height) - 1)
-    storage.mines = ev.target.value
+    ev.target.value = clamp(ev.target.value, 1, (window.storage.width * window.storage.height) - 1)
+    window.storage.mines = ev.target.value
   })
 
   $('[data-storage-value]')
-  .each((i, e) => {
-    e.value = storage[e.dataset.storageValue]
-  })
-  .change((ev) => {
-    storage[ev.target.dataset.storageValue] = ev.target.value
-    svgBombColor()
-  })
+    .each((i, e) => {
+      e.value = window.storage[e.dataset.storageValue]
+    })
+    .change((ev) => {
+      window.storage[ev.target.dataset.storageValue] = ev.target.value
+      svgBombColor()
+    })
 }
 /**
 * Toggles the settings overlay
@@ -338,27 +338,33 @@ function toggleOverlay () {
 // <region> Document
 /**
  * Determines the compatibility of the browser
- * @return {Dictionary}
  */
 function checkCompat () {
   try {
     let e = document.createElement('input')
     e.type = 'color'
+    window.compats.color = true
+    $('#misc-demo').append($('<span class="sm">Click the bombs to change their colors</span>'))
   } catch (e) {
-    window.compats.push(false)
-  } finally {
-    window.compats.push(true)
+    window.compats.color = false
+  }
+  try {
+    window.storage = window.localStorage
+    window.compats.storage = true
+  } catch (e) {
+    window.storage = {}
+    window.compats.storage = false
   }
 }
 /**
  * The main load handler
  */
 function load () {
+  checkCompat()
   defaultSettings()
   prepBoard()
   prepSettings()
   svgBombColor()
-  checkCompat()
 
   setInterval(() => {
     if (window.start && !window.ending) {
