@@ -41,6 +41,9 @@ body {
 #allHidden, #allHidden * {
    display: none;
 }
+.sm {
+   font-size: smaller;
+}
 /* </region> */
 
 /* <region> Header */
@@ -170,13 +173,16 @@ thead tr {
 
    text-align: center;
 }
-#mainBoard .cell:not([data-shown="false"]):first-child {
+.cell[data-shown="post"] {
+   background-color: #AAA;  
+}
+.cell:not([data-shown="false"]):first-child {
    border-left-width: 4px;
 }
-#mainBoard .cell:not([data-shown="false"]):last-child {
+.cell:not([data-shown="false"]):last-child {
    border-right-width: 4px;
 }
-#mainBoard tr:last-child .cell.shown {
+tr:last-child .cell:not([data-shown="false"]) {
    border-bottom-width: 4px;
 }
 .cell[data-flagged="flagged"] {
@@ -239,6 +245,10 @@ thead tr {
 #icons-demo [data-mine] svg {
    width: 38px;
    height: 38px;
+}
+#diff-demo input[type="number"] {
+   width: 38px;
+   margin-top: 0.5em;
 }
 #near-demo [data-near] {
    font-size: 1.1em;

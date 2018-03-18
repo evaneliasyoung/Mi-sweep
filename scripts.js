@@ -6,6 +6,7 @@
 
 // <region> Variables
 const $ = window.$
+window.version = `1.0.1`
 window.compats = {}
 window.ending = false
 window.firstMove = true
@@ -174,7 +175,7 @@ function calcNear (e) {
 function revealCell (e) {
   if (e.dataset.flagged === 'flagged' && !window.ending) { return false }
 
-  if (window.ending) {
+  if (window.ending && window.storage.postShown === 'true') {
     e.dataset.shown = 'post'
   } else {
     e.dataset.shown = 'true'
@@ -284,6 +285,7 @@ function defaultSettings () {
   window.storage.bombDetonated = window.storage.bombDetonated || window.storage.bombDetonatedDefault
   window.storage.bombFlagged = window.storage.bombFlagged || window.storage.bombFlaggedDefault
   window.storage.bombGuessed = window.storage.bombGuessed || window.storage.bombGuessedDefault
+  window.storage.postShown = window.storage.postShown || false
 }
 /**
  * Prepares the settings overlay
@@ -291,8 +293,8 @@ function defaultSettings () {
 async function prepSettings () {
   $('#mainSettings')
     .css({
-      width: $('#mainBoard tbody').width() - 2,
-      height: $('#mainBoard tbody').height() - 2,
+      width: $('#mainBoard tbody').width() - 4,
+      height: $('#mainBoard tbody').height() - 4,
       top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
     })
 
@@ -312,20 +314,33 @@ async function prepSettings () {
     })
     .contextmenu(() => { return false })
 
-  $('[name="inp-mines"]').get(0).value = window.storage.mines
-  $('[name="inp-mines"]').change((ev) => {
-    ev.target.value = clamp(ev.target.value, 1, (window.storage.width * window.storage.height) - 1)
-    window.storage.mines = ev.target.value
-  })
+  $('[name="inp-mines"]')
+    .change((ev) => {
+      ev.target.value = clamp(ev.target.value, 1, (window.storage.width * window.storage.height) - 1)
+      window.storage.mines = ev.target.value
+    })
+    .get(0).value = window.storage.mines
 
   $('[data-storage-value]')
     .each((i, e) => {
-      e.value = window.storage[e.dataset.storageValue]
+      if (e.type !== 'checkbox') {
+        e.value = window.storage[e.dataset.storageValue]
+      } else {
+        e.checked = window.storage[e.dataset.storageValue] === 'true'
+      }
     })
     .change((ev) => {
-      window.storage[ev.target.dataset.storageValue] = ev.target.value
+      if (ev.target.type !== 'checkbox') {
+        window.storage[ev.target.dataset.storageValue] = ev.target.value
+      } else {
+        window.storage[ev.target.dataset.storageValue] = ev.target.checked
+      }
       svgBombColor()
     })
+
+  $('#icons-demo').append(window.compats.color ? '<span class="sm">Click the bombs to change their colors</span>' : '')
+
+  $('#misc-demo').append(`<br><span class="sm">Version ${window.version}</span>`)
 }
 /**
 * Toggles the settings overlay
@@ -344,7 +359,6 @@ function checkCompat () {
     let e = document.createElement('input')
     e.type = 'color'
     window.compats.color = true
-    $('#misc-demo').append($('<span class="sm">Click the bombs to change their colors</span>'))
   } catch (e) {
     window.compats.color = false
   }
