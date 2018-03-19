@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Hinsborough Patch 2 (1.0.2)`
+window.version = `Archaeus Beta 1 (2.0.0-b1)`
 window.compats = {}
 window.ending = false
 window.firstMove = true
@@ -47,18 +47,19 @@ function randInt (mn, mx) {
 // <region> Board
 /**
  * Places the mines on the board
+ * @param  {Cell} [pe=undefined] The protected cell
  * @param  {Number} [px=-1] The protected x location
  * @param  {Number} [py=-1] The protected y location
  */
-function genBoard (px = -1, py = -1) {
+function genBoard (pe = undefined) {
   window.left = window.storage.mines
   for (let m = 0; m < window.storage.mines; m++) {
     let x, y, e
     do {
       x = randInt(0, window.storage.width - 1)
       y = randInt(0, window.storage.height - 1)
-      e = $($('#mainBoard tbody tr').get(y)).find('td').get(x)
-    } while (e.dataset.mine || (x === px && y === py))
+      e = $('#mainBoard tbody tr').eq(y).find('td').get(x)
+    } while (e.dataset.mine || e === pe)
     e.dataset.mine = 'regular'
   }
 }
@@ -69,18 +70,20 @@ function prepBoard () {
   $('#mainBoard thead tr td').attr('colspan', window.storage.width)
   $('#flags span').text(window.storage.mines)
   $('#flags img').click(() => { toggleOverlay() })
+  $('#reset img').click(() => { window.location.reload() })
 
-  $('#mainBoard tbody').html('')
-  for (let i = 0; i < window.storage.height; i++) {
-    $('#mainBoard tbody').append(`<tr>${'<td class="cell" data-shown="false" data-flagged="default"></td>'.repeat(window.storage.width)}</tr>`)
-  }
+  $('#mainBoard tbody').html(`
+    <tr>
+      ${'<td class="cell" data-shown="false" data-flagged="default"></td>'.repeat(window.storage.width)}
+    </tr>
+  `.repeat(window.storage.height))
 
   $('.cell')
     .mousedown((ev) => {
       if (ev.which === 1) {
         if (!window.start) { window.start = new Date() }
         if (window.firstMove) {
-          genBoard(cellToCoords(ev.target)[0], cellToCoords(ev.target)[1])
+          genBoard(ev.target)
           window.firstMove = false
         }
         revealCell(ev.target)
@@ -92,23 +95,38 @@ function prepBoard () {
     .contextmenu(() => {
       return false
     })
+}
+/**
+ * Shakes the board when a bomb is detonated
+ * @param  {Number} [int=5] The intensity
+ * @param  {Number} [dur=1] The duration in seconds
+ */
+function shakeBoard (int = 5, dur = 0.5) {
+  let fr = 100
 
-  $('#reset img').click(() => { window.location.reload() })
+  for (let i = 0; i < fr; i++) {
+    setTimeout(() => {
+      $('#mainBoard').css('transform', `translate(${randInt(0, int)}px, ${randInt(0, int)}px)`)
+    }, i * dur * 10)
+  }
+  setTimeout(() => {
+    $('#mainBoard').css('transform', 'translate(0px, 0px)')
+  }, (fr + 1) * dur * 10)
 }
 /**
  * Ends the game
  */
-function endGame () {
+async function endGame () {
   window.ending = true
-  $('.cell:not([data-shown="true"])').each((i, e) => {
-    revealCell(e)
-  })
+  $('.cell:not([data-shown="true"])').each((i, e) => { revealCell(e) })
+  svgBombColor()
 }
 /**
  * Loses the game
  */
-function loseGame () {
+async function loseGame () {
   if (!window.ending) {
+    if (window.storage.explodeShake === 'true') { shakeBoard() }
     endGame()
     $('#reset img').attr('src', 'images/face-dead.svg')
   }
@@ -116,7 +134,7 @@ function loseGame () {
 /**
  * Wins the game
  */
-function winGame () {
+async function winGame () {
   if (!window.ending) {
     endGame()
     $('#reset img').attr('src', 'images/face-cool.svg')
@@ -132,7 +150,7 @@ function winGame () {
  * @return {Element}   The table cell
  */
 function coordsToCell (x, y) {
-  return $(`#mainBoard > tbody > tr:nth-child(${y + 1}) > td:nth-child(${x + 1})`).get(0)
+  return $('#mainBoard tbody tr').eq(y).find('td').get(x)
 }
 /**
  * Converts a table cell to it's coordinates
@@ -181,7 +199,7 @@ function calcNear (e) {
  * Reveals a cell's contents
  * @param  {Element} e The cell to reveal
  */
-function revealCell (e) {
+async function revealCell (e) {
   if (e.dataset.flagged === 'flagged' && !window.ending) { return false }
 
   if (window.ending && window.storage.postShown === 'true') {
@@ -212,7 +230,6 @@ function revealCell (e) {
   }
   // Game ending AND Cell has a mine OR Game not ending OR Guessed cell
   if ((window.ending && e.dataset.mine) || !window.ending || e.dataset.flagged === 'guessed') { flagCell(e, 0) }
-  svgBombColor()
 }
 /**
  * Cycles through a cell's flagged state
@@ -223,7 +240,7 @@ function flagCell (e, setFlag = undefined) {
   let sts = ['default', 'flagged', 'guessed']
   let cur = sts.indexOf(e.dataset.flagged)
   let nxt = setFlag === undefined ? (cur + 1) % 3 : setFlag
-  // Already shown AND no flag OR No flag AND no flags left
+  // Already shown AND no force flag OR no flag AND no flags left
   if ((e.dataset.shown !== 'false' && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
 
   e.dataset.flagged = sts[nxt]
@@ -242,9 +259,8 @@ function flagCell (e, setFlag = undefined) {
 async function svgAdd (e) {
   let svgBomb = '<path d="M11.25,6A3.25,3.25 0 0,1 14.5,2.75A3.25,3.25 0 0,1 17.75,6C17.75,6.42 18.08,6.75 18.5,6.75C18.92,6.75 19.25,6.42 19.25,6V5.25H20.75V6A2.25,2.25 0 0,1 18.5,8.25A2.25,2.25 0 0,1 16.25,6A1.75,1.75 0 0,0 14.5,4.25A1.75,1.75 0 0,0 12.75,6H14V7.29C16.89,8.15 19,10.83 19,14A7,7 0 0,1 12,21A7,7 0 0,1 5,14C5,10.83 7.11,8.15 10,7.29V6H11.25M22,6H24V7H22V6M19,4V2H20V4H19M20.91,4.38L22.33,2.96L23.04,3.67L21.62,5.09L20.91,4.38Z" />'
   e.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24">${svgBomb}</svg>`
-  if (e.dataset.shown !== 'false') {
-    $(e).css('padding', '0px')
-  }
+
+  if (e.dataset.shown !== 'false') { $(e).css('padding', '0px') }
 }
 /**
  * Recolors the bomb svgs according to the settings
@@ -295,6 +311,7 @@ function defaultSettings () {
   window.storage.bombFlagged = window.storage.bombFlagged || window.storage.bombFlaggedDefault
   window.storage.bombGuessed = window.storage.bombGuessed || window.storage.bombGuessedDefault
   window.storage.postShown = window.storage.postShown || false
+  window.storage.explodeShake = window.storage.explodeShake || false
 }
 /**
  * Prepares the settings overlay
