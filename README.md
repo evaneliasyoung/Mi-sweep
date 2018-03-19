@@ -1,8 +1,7 @@
 # Mi'sweep
 
-[![HTML5 Compliance](https://img.shields.io/badge/HTML5-0_Issues-brightgreen.svg?style=flat)](https://validator.w3.org/nu/)
-[![StandardJS Compliance](https://img.shields.io/badge/StandardJS-0_Issues-brightgreen.svg?style=flat)](https://standardjs.com/)
-[![CSS3 Compliance](https://img.shields.io/badge/CSS3-0_Issues-brightgreen.svg?style=flat)](https://validator.w3.org/nu/)
+[![Code Style](https://img.shields.io/badge/code_style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
+[![Versioning](https://img.shields.io/badge/versioning-semantic-brightgreen.svg?style=flat)](https://semver.org/)
 [![Release](https://img.shields.io/github/release/doccodes/mi-sweep.svg)](https://github.com/DocCodes/Mi-sweep/releases/latest)
 
 
