@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `1.0.1`
+window.version = `Hinsborough Patch 2 (1.0.2)`
 window.compats = {}
 window.ending = false
 window.firstMove = true
@@ -33,6 +33,15 @@ function titleCase (s) {
     return e[0].toUpperCase() + e.substr(1)
   }).join(' ')
 }
+/**
+ * Generates a random number in the range inclusively
+ * @param  {Number} mn The minimum
+ * @param  {Number} mx The maximum
+ * @return {Number}    The random number in range
+ */
+function randInt (mn, mx) {
+  return Math.round(Math.random() * (mx - mn) + mn)
+}
 // </region>
 
 // <region> Board
@@ -46,11 +55,11 @@ function genBoard (px = -1, py = -1) {
   for (let m = 0; m < window.storage.mines; m++) {
     let x, y, e
     do {
-      x = Math.floor(Math.random() * window.storage.width)
-      y = Math.floor(Math.random() * window.storage.height)
+      x = randInt(0, window.storage.width - 1)
+      y = randInt(0, window.storage.height - 1)
       e = $($('#mainBoard tbody tr').get(y)).find('td').get(x)
     } while (e.dataset.mine || (x === px && y === py))
-    e.dataset.mine = 'true'
+    e.dataset.mine = 'regular'
   }
 }
 /**
@@ -68,8 +77,8 @@ function prepBoard () {
 
   $('.cell')
     .mousedown((ev) => {
-      if (!window.start) { window.start = new Date() }
       if (ev.which === 1) {
+        if (!window.start) { window.start = new Date() }
         if (window.firstMove) {
           genBoard(cellToCoords(ev.target)[0], cellToCoords(ev.target)[1])
           window.firstMove = false
@@ -84,7 +93,7 @@ function prepBoard () {
       return false
     })
 
-  $('#reset').click(() => { window.location.reload() })
+  $('#reset img').click(() => { window.location.reload() })
 }
 /**
  * Ends the game
@@ -276,12 +285,12 @@ function defaultSettings () {
   if (!parseInt(window.storage.mines)) {
     window.difficulty.intermediate()
   }
-  window.storage.bombRegularDefault = '#000000'
+  window.storage.bombDefaultDefault = '#000000'
   window.storage.bombDetonatedDefault = '#FF1300'
   window.storage.bombFlaggedDefault = '#008100'
   window.storage.bombGuessedDefault = '#000083'
 
-  window.storage.bombRegular = window.storage.bombRegular || window.storage.bombRegularDefault
+  window.storage.bombDefault = window.storage.bombDefault || window.storage.bombDefaultDefault
   window.storage.bombDetonated = window.storage.bombDetonated || window.storage.bombDetonatedDefault
   window.storage.bombFlagged = window.storage.bombFlagged || window.storage.bombFlaggedDefault
   window.storage.bombGuessed = window.storage.bombGuessed || window.storage.bombGuessedDefault

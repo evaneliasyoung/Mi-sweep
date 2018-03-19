@@ -174,7 +174,7 @@ thead tr {
    text-align: center;
 }
 .cell[data-shown="post"] {
-   background-color: #AAA;  
+   background-color: #AAAAAA;
 }
 .cell:not([data-shown="false"]):first-child {
    border-left-width: 4px;
