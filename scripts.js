@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus Beta 1 (2.0.0-b1)`
+window.version = `Archaeus Beta 2 (2.0.0-b2)`
 window.compats = {}
 window.ending = false
 window.firstMove = true
