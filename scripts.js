@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus Beta 4 (2.0.0-b4)`
+window.version = `Archaeus (2.0.0)`
 window.compats = {}
 // </region>
 
@@ -46,8 +46,6 @@ function randInt (mn, mx) {
 /**
  * Places the mines on the board
  * @param  {Cell} [pe=undefined] The protected cell
- * @param  {Number} [px=-1] The protected x location
- * @param  {Number} [py=-1] The protected y location
  */
 function genBoard (pe = undefined) {
   window.left = window.storage.mines
@@ -68,10 +66,10 @@ function prepBoard () {
   $('#mainBoard thead tr td').attr('colspan', window.storage.width)
   $('#timer').text('00:00:00')
   $('#flags span').text(window.storage.mines)
-  $('#flags img').click(() => { toggleOverlay() })
+  $('#flags img').click(toggleOverlay)
   $('#reset img')
     .attr('src', 'images/face-happy.svg')
-    .click(() => { load() })
+    .click(reload)
 
   $('#mainBoard tbody').html(`
     <tr>
@@ -81,15 +79,16 @@ function prepBoard () {
 
   $('.cell')
     .mousedown((ev) => {
-      if (ev.which === 1) {
-        if (!window.start) { window.start = new Date() }
-        if (window.firstMove) {
-          genBoard(ev.target)
-          window.firstMove = false
-        }
-        revealCell(ev.target)
-      } else if (ev.which === 3) {
-        flagCell(ev.target)
+      switch (ev.which) {
+        case 1:
+          revealCell(ev.target)
+          break
+        case 2:
+          hintCell(ev.target)
+          break
+        case 3:
+          flagCell(ev.target)
+          break
       }
       if ($('[data-flagged="flagged"][data-mine]').length === parseInt(window.storage.mines)) { winGame() }
     })
@@ -116,29 +115,29 @@ function shakeBoard (int = 5, dur = 0.5) {
 }
 /**
  * Ends the game
+ * @param  {String} face The new face
  */
-function endGame () {
-  window.ending = true
+function endGame (face) {
+  window.end = new Date()
   $('.cell:not([data-shown="true"])').each((i, e) => { revealCell(e) })
+  $('#reset img').attr('src', `images/face-${face}.svg`)
   svgBombColor()
 }
 /**
  * Loses the game
  */
 function loseGame () {
-  if (!window.ending) {
+  if (!window.end) {
     if (window.storage.explodeShake === 'true') { shakeBoard() }
-    endGame()
-    $('#reset img').attr('src', 'images/face-dead.svg')
+    endGame('dead')
   }
 }
 /**
  * Wins the game
  */
 function winGame () {
-  if (!window.ending) {
-    endGame()
-    $('#reset img').attr('src', 'images/face-cool.svg')
+  if (!window.end) {
+    endGame('cool')
   }
 }
 // </region>
@@ -201,9 +200,14 @@ function calcNear (e) {
  * @param  {Element} e The cell to reveal
  */
 function revealCell (e) {
-  if (e.dataset.flagged === 'flagged' && !window.ending) { return false }
+  if (e.dataset.flagged === 'flagged' && !window.end) { return false }
 
-  if (window.ending && window.storage.postShown === 'true') {
+  if (!window.start) {
+    genBoard(e)
+    window.start = new Date()
+  }
+
+  if (window.end && window.storage.postShown === 'true') {
     e.dataset.shown = 'post'
   } else {
     e.dataset.shown = 'true'
@@ -211,7 +215,7 @@ function revealCell (e) {
 
   if (e.dataset.mine) {
     svgAdd(e)
-    if (!window.ending) {
+    if (!window.end) {
       e.dataset.mine = 'detonated'
       loseGame()
     } else if (e.dataset.mine !== 'detonated') {
@@ -230,7 +234,7 @@ function revealCell (e) {
     }
   }
   // Game ending AND Cell has a mine OR Game not ending OR Guessed cell
-  if ((window.ending && e.dataset.mine) || !window.ending || e.dataset.flagged === 'guessed') { flagCell(e, 0) }
+  if ((window.end && e.dataset.mine) || !window.end || e.dataset.flagged === 'guessed') { flagCell(e, 0) }
 }
 /**
  * Cycles through a cell's flagged state
@@ -245,10 +249,19 @@ function flagCell (e, setFlag = undefined) {
   if ((e.dataset.shown !== 'false' && setFlag === undefined) || (window.left - 1 < 0 && cur === 0)) { return false }
 
   e.dataset.flagged = sts[nxt]
-  if (!window.ending) { window.left = window.storage.mines - $('[data-flagged="flagged"]').length }
+  if (!window.end) { window.left = window.storage.mines - $('[data-flagged="flagged"]').length }
   $('#flags span')
     .text(window.left)
     .get(0).title = `${$('[data-flagged="flagged"]').length} Marked\n${$('[data-flagged="guessed"]').length} Guess(es)`
+}
+function hintCell (e) {
+  if (e.dataset.shown !== 'false' || window.hints <= 0 || !window.start) { return false }
+  if (e.dataset.mine) {
+    flagCell(e, 1)
+  } else {
+    revealCell(e)
+  }
+  window.hints--
 }
 // </region>
 
@@ -283,48 +296,43 @@ function defaultSettings () {
       window.storage.mines = 10
       window.storage.width = 8
       window.storage.height = 8
-      window.location.reload()
+      reload()
     },
     intermediate: () => {
       window.storage.mines = 40
       window.storage.width = 16
       window.storage.height = 16
-      window.location.reload()
+      reload()
     },
     expert: () => {
       window.storage.mines = 99
       window.storage.width = 30
       window.storage.height = 16
-      window.location.reload()
+      reload()
     }
   }
 
-  if (!parseInt(window.storage.mines)) {
-    window.difficulty.intermediate()
+  let defaults = {
+    mines: 40,
+    width: 16,
+    height: 16,
+    bombDefault: '#000000',
+    bombDetonated: '#FF1300',
+    bombFlagged: '#008100',
+    bombGuessed: '#000083',
+    postShown: false,
+    explodeShake: false
   }
-  window.storage.bombDefaultDefault = '#000000'
-  window.storage.bombDetonatedDefault = '#FF1300'
-  window.storage.bombFlaggedDefault = '#008100'
-  window.storage.bombGuessedDefault = '#000083'
-
-  window.storage.bombDefault = window.storage.bombDefault || window.storage.bombDefaultDefault
-  window.storage.bombDetonated = window.storage.bombDetonated || window.storage.bombDetonatedDefault
-  window.storage.bombFlagged = window.storage.bombFlagged || window.storage.bombFlaggedDefault
-  window.storage.bombGuessed = window.storage.bombGuessed || window.storage.bombGuessedDefault
-  window.storage.postShown = window.storage.postShown || false
-  window.storage.explodeShake = window.storage.explodeShake || false
+  for (let d in defaults) {
+    window.storage[`${d}Default`] = defaults[d]
+    window.storage[d] = window.storage[d] || window.storage[`${d}Default`]
+  }
 }
 /**
  * Prepares the settings overlay
  */
-function prepSettings () {
-  $('#mainSettings')
-    .css({
-      width: $('#mainBoard tbody').width() - 4,
-      height: $('#mainBoard tbody').height() - 4,
-      top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
-    })
-
+function prepOverlay () {
+  sizeOverlay()
   $('#icons-demo [data-mine]')
     .each((i, e) => {
       svgAdd(e)
@@ -370,6 +378,17 @@ function prepSettings () {
   $('#misc-demo').append(`<br><span class="sm">Version ${window.version}</span>`)
 }
 /**
+ * Sizes the settings overlay correctly
+ */
+function sizeOverlay () {
+  $('#mainSettings')
+    .css({
+      width: $('#mainBoard tbody').width() - 4,
+      height: $('#mainBoard tbody').height() - 4,
+      top: $('#mainBoard').offset().top * 1.5 + $('#mainBoard thead').outerHeight()
+    })
+}
+/**
 * Toggles the settings overlay
 */
 function toggleOverlay () {
@@ -397,8 +416,11 @@ function checkCompat () {
     window.compats.storage = false
   }
 }
+/**
+ * Updates the timer
+ */
 function updateTimer () {
-  if (window.start && !window.ending) {
+  if (window.start && !window.end) {
     let diff, hour, min, sec
     diff = (new Date()) - window.start
     hour = Math.floor(diff / 1000 / 60 / 60)
@@ -411,20 +433,27 @@ function updateTimer () {
   }
 }
 /**
+ * Reloads the game
+ */
+function reload () {
+  window.start = false
+  window.end = false
+  window.hints = 3
+
+  prepBoard()
+  sizeOverlay()
+}
+/**
  * The main load handler
  */
 function load () {
-  window.firstMove = true
-  window.start = false
-  window.ending = false
-
   checkCompat()
   defaultSettings()
-  prepBoard()
-  prepSettings()
+  prepOverlay()
   svgBombColor()
+  reload()
 
   setInterval(updateTimer, 1000)
 }
-// load()
+load()
 // </region>
