@@ -6,10 +6,8 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus Beta 2 (2.0.0-b2)`
+window.version = `Archaeus Beta 3 (2.0.0-b3)`
 window.compats = {}
-window.ending = false
-window.firstMove = true
 // </region>
 
 // <region> Polyfill
@@ -68,9 +66,12 @@ function genBoard (pe = undefined) {
  */
 function prepBoard () {
   $('#mainBoard thead tr td').attr('colspan', window.storage.width)
+  $('#timer').text('00:00:00')
   $('#flags span').text(window.storage.mines)
   $('#flags img').click(() => { toggleOverlay() })
-  $('#reset img').click(() => { window.location.reload() })
+  $('#reset img')
+    .attr('src', 'images/face-happy.svg')
+    .click(() => { load() })
 
   $('#mainBoard tbody').html(`
     <tr>
@@ -101,7 +102,7 @@ function prepBoard () {
  * @param  {Number} [int=5] The intensity
  * @param  {Number} [dur=1] The duration in seconds
  */
-function shakeBoard (int = 5, dur = 0.5) {
+async function shakeBoard (int = 5, dur = 0.5) {
   let fr = 100
 
   for (let i = 0; i < fr; i++) {
@@ -396,29 +397,34 @@ function checkCompat () {
     window.compats.storage = false
   }
 }
+async function updateTimer () {
+  if (window.start && !window.ending) {
+    let diff, hour, min, sec
+    diff = (new Date()) - window.start
+    hour = Math.floor(diff / 1000 / 60 / 60)
+    diff -= hour * 1000 * 60 * 60
+    min = Math.floor(diff / 1000 / 60)
+    diff -= min * 1000 * 60
+    sec = Math.ceil(diff / 1000)
+
+    $('#timer').text(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`)
+  }
+}
 /**
  * The main load handler
  */
 function load () {
+  window.firstMove = true
+  window.start = false
+  window.ending = false
+
   checkCompat()
   defaultSettings()
   prepBoard()
   prepSettings()
   svgBombColor()
 
-  setInterval(() => {
-    if (window.start && !window.ending) {
-      let diff, hour, min, sec
-      diff = (new Date()) - window.start
-      hour = Math.floor(diff / 1000 / 60 / 60)
-      diff -= hour * 1000 * 60 * 60
-      min = Math.floor(diff / 1000 / 60)
-      diff -= min * 1000 * 60
-      sec = Math.floor(diff / 1000)
-
-      $('#timer').text(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`)
-    }
-  }, 1000)
+  setInterval(updateTimer, 1000)
 }
 load()
 // </region>
