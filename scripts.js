@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus Beta 6 (2.0.0-b6)`
+window.version = `Archaeus (2.0.0)`
 window.compats = {}
 // </region>
 
@@ -72,9 +72,11 @@ function prepBoard () {
 
   $('#mainBoard tbody').html(`
     <tr>
-      ${'<td class="cell" data-shown="false" data-flagged="default"></td>'.repeat(window.storage.width)}
+      ${'<td class="cell nocontextmenu" data-shown="false" data-flagged="default"></td>'.repeat(window.storage.width)}
     </tr>
   `.repeat(window.storage.height))
+
+  $('.nocontextmenu').contextmenu(() => { return false })
 
   $('.cell')
     .mousedown((ev) => {
@@ -83,7 +85,7 @@ function prepBoard () {
           window.holdTimer = setTimeout(() => {
             flagCell(ev.target)
             window.holding = false
-          }, 1000)
+          }, 500)
           window.holding = true
           break
         case 2:
@@ -95,14 +97,18 @@ function prepBoard () {
       }
       if ($('[data-flagged="flagged"][data-mine]').length === parseInt(window.storage.mines)) { winGame() }
     })
-    .mouseup((ev) => {
+    .bind('touchstart', (ev) => {
+      window.holdTimer = setTimeout(() => {
+        flagCell(ev.target)
+        window.holding = false
+      }, 500)
+      window.holding = true
+    })
+    .bind('mouseup touchend', (ev) => {
       if (window.holding) {
         revealCell(ev.target)
         window.holding = false
       }
-    })
-    .contextmenu(() => {
-      return false
     })
 }
 /**
@@ -356,7 +362,6 @@ function prepOverlay () {
         svgBombColor()
       }
     })
-    .contextmenu(() => { return false })
 
   $('[name="inp-mines"]')
     .change((ev) => {

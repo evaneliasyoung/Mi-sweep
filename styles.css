@@ -151,6 +151,9 @@ thead tr {
    background-repeat: no-repeat;
    background-position: center;
    background-size: 80%;
+
+   -webkit-tap-highlight-color: transparent;
+   -webkit-touch-callout: none;
 }
 .cell:not([data-shown="false"]) {
    padding: 2px;
@@ -194,28 +197,28 @@ tr:last-child .cell:not([data-shown="false"]) {
 /* </region> */
 
 /* <region> Colors */
-.cell[data-near="1"], [data-near="1"] {
+.cell[data-near="1"] {
    color: #0000FF;
 }
-.cell[data-near="2"], [data-near="2"] {
+.cell[data-near="2"] {
    color: #008100;
 }
-.cell[data-near="3"], [data-near="3"] {
+.cell[data-near="3"] {
    color: #FF1300;
 }
-.cell[data-near="4"], [data-near="4"] {
+.cell[data-near="4"] {
    color: #000083;
 }
-.cell[data-near="5"], [data-near="5"] {
+.cell[data-near="5"] {
    color: #810500;
 }
-.cell[data-near="6"], [data-near="6"] {
+.cell[data-near="6"] {
    color: #2A9494;
 }
-.cell[data-near="7"], [data-near="7"] {
+.cell[data-near="7"] {
    color: #000000;
 }
-.cell[data-near="8"], [data-near="8"] {
+.cell[data-near="8"] {
    color: #808080;
 }
 /* </region> */
