@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus Beta 5 (2.0.0-b5)`
+window.version = `Archaeus Beta 6 (2.0.0-b6)`
 window.compats = {}
 // </region>
 
@@ -66,7 +66,6 @@ function prepBoard () {
   $('#mainBoard thead tr td').attr('colspan', window.storage.width)
   $('#timer').text('00:00:00')
   $('#flags span').text(window.storage.mines)
-  $('#flags img').click(toggleOverlay)
   $('#reset img')
     .attr('src', 'images/face-happy.svg')
     .click(reload)
@@ -81,7 +80,11 @@ function prepBoard () {
     .mousedown((ev) => {
       switch (ev.which) {
         case 1:
-          revealCell(ev.target)
+          window.holdTimer = setTimeout(() => {
+            flagCell(ev.target)
+            window.holding = false
+          }, 1000)
+          window.holding = true
           break
         case 2:
           hintCell(ev.target)
@@ -91,6 +94,12 @@ function prepBoard () {
           break
       }
       if ($('[data-flagged="flagged"][data-mine]').length === parseInt(window.storage.mines)) { winGame() }
+    })
+    .mouseup((ev) => {
+      if (window.holding) {
+        revealCell(ev.target)
+        window.holding = false
+      }
     })
     .contextmenu(() => {
       return false
@@ -447,6 +456,7 @@ function reload () {
  * The main load handler
  */
 function load () {
+  $('#flags img').click(toggleOverlay)
   checkCompat()
   defaultSettings()
   prepOverlay()
