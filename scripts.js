@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus Patch 1 (2.0.1)`
+window.version = `Archaeus Patch 2 (2.0.2)`
 window.compats = {}
 // </region>
 
