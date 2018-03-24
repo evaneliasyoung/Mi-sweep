@@ -6,7 +6,7 @@
 
 // <region> Variables
 const $ = window.$
-window.version = `Archaeus (2.0.0)`
+window.version = `Archaeus Patch 1 (2.0.1)`
 window.compats = {}
 // </region>
 
@@ -104,7 +104,7 @@ function prepBoard () {
       }, 500)
       window.holding = true
     })
-    .bind('mouseup touchend', (ev) => {
+    .bind('mouseup touchend mouseleave', (ev) => {
       if (window.holding) {
         revealCell(ev.target)
         window.holding = false
